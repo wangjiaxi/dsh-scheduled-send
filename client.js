@@ -179,21 +179,31 @@ window.__ModuleLoader__.load({
 			'.dss-btn-primary:hover:not(:disabled){filter:brightness(1.06)}',
 			'.dss-btn:disabled{opacity:.6;cursor:default}',
 			'@keyframes dss-fade{from{opacity:0}to{opacity:1}}',
-			// ── 宿主发送按钮的造型微调 ────────────────────────────────────────
-			// 这三条只改外观，用来把「定时箭头」和宿主那颗圆形发送按钮拼成一颗
-			// 胶囊（飞书同款）。全部按 `[data-composer-card] button[class*="_primary"]`
-			// 这种「结构 + 类名后缀」匹配，任何一条不再生效时功能都还在：
+			// ── 宿主发送按钮的造型微调（宽屏：拼成一颗胶囊） ──────────────────
+			// 三条都只改外观，并且只在「宽屏 且 没有移动端的环占位」时生效：
 			//   - 圆角没匹配上 → 接缝处多两个直角，仍是两个蓝按钮挨着；
 			//   - 旋转没匹配上 → 发送箭头朝上，其余照旧；
 			//   - :has() 没匹配上 → 运行中主按钮变「停止」时，箭头仍然显示着。
-			'[data-composer-card] button[class*="_primary"]{position:relative;border-radius:0 999px 999px 0}',
+			'@media (min-width:768px){[data-composer-card]:not(:has([data-mobile-nav="stats-ring-reserve"])) button[class*="_primary"]{position:relative;border-radius:0 999px 999px 0}}',
 			'[data-composer-card] button[class*="_primary"] svg{transform:rotate(90deg)}',
 			// 分隔线画在发送按钮自己的左缘上：不管中间到底隔了几像素，它永远正好落在
 			// 两半的接缝处。「停止」方块出现时箭头半段会收起，这条线也跟着不画。
-			'[data-composer-card]:not(:has(button[class*="_primary"] svg rect)) button[class*="_primary"]:before{content:"";position:absolute;left:0;top:11px;bottom:11px;width:1px;background:rgba(255,255,255,.4)}',
+			'@media (min-width:768px){[data-composer-card]:not(:has([data-mobile-nav="stats-ring-reserve"])):not(:has(button[class*="_primary"] svg rect)) button[class*="_primary"]:before{content:"";position:absolute;left:0;top:11px;bottom:11px;width:1px;background:rgba(255,255,255,.4)}}',
 			// 悬停时整颗胶囊一起变色，而不是只亮一半。
-			'[data-composer-card]:has(button[class*="_primary"]:hover) .dss-trigger{background:var(--dsw-alias-button-info-hover,var(--dsw-alias-brand-primary,#4d6bfe))}',
-			'[data-composer-card]:has(button[class*="_primary"] svg rect) .dss-anchor{display:none}'
+			'@media (min-width:768px){[data-composer-card]:not(:has([data-mobile-nav="stats-ring-reserve"])):has(button[class*="_primary"]:hover) .dss-trigger{background:var(--dsw-alias-button-info-hover,var(--dsw-alias-brand-primary,#4d6bfe))}}',
+			'[data-composer-card]:has(button[class*="_primary"] svg rect) .dss-anchor{display:none}',
+			// ── 移动端 / 窄屏：退回成「发送键旁边的一个小图标按钮」 ────────────
+			// dsh-web-mobile 在窄屏下把 .trailing 的间距从 12px 压到 3px，还会在发送键
+			// 左边插一个 18px 的环占位 span（把上下文环搬过去）。这时候再往右贴 24px
+			// 既贴不严、又会压住那个环，所以窄屏干脆不拼胶囊。
+			'@media (max-width:767px){.dss-anchor{right:0}.dss-trigger{width:28px;height:28px;padding:0;border-radius:8px;transform:none;background:transparent;color:var(--dsw-alias-label-secondary,#8a8f98)}.dss-trigger:hover:not([data-dim="1"]){background:var(--dsw-alias-bg-layer-2,rgba(127,127,127,.14));color:var(--dsw-alias-label-primary,#1f2328)}.dss-trigger:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4d6bfe);outline-offset:1px}}',
+			// 平板档（≥768px 但 pointer:coarse）web-mobile 也会插占位，同样退回小按钮。
+			'[data-composer-card]:has([data-mobile-nav="stats-ring-reserve"]) .dss-anchor{right:0}',
+			'[data-composer-card]:has([data-mobile-nav="stats-ring-reserve"]) .dss-trigger{width:28px;height:28px;padding:0;border-radius:8px;transform:none;background:transparent;color:var(--dsw-alias-label-secondary,#8a8f98)}',
+			'[data-composer-card]:has([data-mobile-nav="stats-ring-reserve"]) .dss-trigger:hover:not([data-dim="1"]){background:var(--dsw-alias-bg-layer-2,rgba(127,127,127,.14));color:var(--dsw-alias-label-primary,#1f2328)}',
+			// 定时对话框：窄屏改成从底部升起的抽屉，输入框用 16px 字号（否则 iOS 聚焦会放大整页）。
+			'@media (max-width:560px){.dss-backdrop{align-items:flex-end;padding:0}.dss-card{width:100%;max-height:88vh;padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px));border-radius:16px 16px 0 0;border-bottom:0;border-left:0;border-right:0}.dss-input{height:42px;font-size:16px}.dss-btn{height:40px}.dss-preview{max-height:76px}.dss-item-x{width:26px;height:26px}}',
+			'@media (max-width:400px){.dss-fields{grid-template-columns:1fr}}'
 		].join('\n');
 		// #endregion
 
