@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Scheduled send",
+    "description": "Adds a chevron beside the composer send button. Pick a date and time and the host delivers that message into the conversation then — closing the page or switching sessions does not cancel it."
+  }
+}

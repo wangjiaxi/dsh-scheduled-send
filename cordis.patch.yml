@@ -1,0 +1,7 @@
+# dsh-scheduled-send bundle patch.
+#
+# 一行：宿主端负责队列、到点投递和 /dsh-scheduled-send/api/* 路由，
+# 客户端负责发送按钮旁的那个箭头与定时对话框。
+- insert:
+    - id: scheduled-send
+      name: dsh-scheduled-send
