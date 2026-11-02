@@ -131,12 +131,17 @@ window.__ModuleLoader__.load({
 
 		// #region styles
 		const CSS = [
-			'.dss-anchor{position:relative;display:inline-flex;align-items:center}',
-			'.dss-trigger{display:inline-flex;align-items:center;justify-content:center;gap:1px;height:28px;min-width:24px;padding:0 4px;border:0;border-radius:8px;background:transparent;color:var(--dsw-alias-label-secondary,#8a8f98);cursor:pointer;transition:background .12s ease,color .12s ease}',
-			'.dss-trigger:hover{background:var(--dsw-alias-bg-layer-2,rgba(127,127,127,.14));color:var(--dsw-alias-label-primary,#1f2328)}',
-			'.dss-trigger:focus-visible{outline:2px solid var(--dsw-alias-brand-primary,#4d6bfe);outline-offset:1px}',
-			'.dss-trigger[data-armed="1"]{color:var(--dsw-alias-brand-primary,#4d6bfe)}',
-			'.dss-badge{display:inline-flex;align-items:center;justify-content:center;min-width:15px;height:15px;padding:0 4px;border-radius:999px;background:var(--dsw-alias-brand-primary,#4d6bfe);color:#fff;font-size:10px;font-weight:600;line-height:1}',
+			// 抽出来占满「工具栏里自己那格」的右边，再右移 8px 贴住宿主的发送按钮。
+			'.dss-anchor{position:relative;right:-8px;order:999;display:inline-flex;align-items:center}',
+			// 发送按钮的左半段：和宿主那颗圆形按钮拼成同一颗蓝胶囊。
+			'.dss-trigger{position:relative;display:inline-flex;align-items:center;justify-content:center;width:26px;height:34px;padding:0;border:0;border-radius:999px 0 0 999px;background:var(--dsw-alias-button-info-fill,var(--dsw-alias-brand-primary,#4d6bfe));color:#fff;cursor:pointer;transform:translateY(-2px);transition:background-color .1s}',
+			'.dss-trigger:hover:not([data-dim="1"]){background:var(--dsw-alias-button-info-hover,var(--dsw-alias-brand-primary,#4d6bfe))}',
+			'.dss-trigger:focus-visible{outline:2px solid #fff;outline-offset:-3px}',
+			'.dss-trigger[data-dim="1"]{opacity:.4;cursor:default}',
+			// 两半之间那道竖分隔线（飞书同款）。
+			'.dss-trigger:after{content:"";position:absolute;right:0;top:11px;bottom:11px;width:1px;background:rgba(255,255,255,.45)}',
+			// 有排队时的小白点，代替原来的数字角标（26px 宽塞不下数字）。
+			'.dss-dot{position:absolute;top:5px;right:7px;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(15,18,24,.16)}',
 			'.dss-tip{position:absolute;bottom:calc(100% + 8px);right:0;z-index:30;padding:5px 9px;border-radius:8px;background:rgba(24,28,36,.94);color:#fff;font-size:12px;line-height:1.4;white-space:nowrap;opacity:0;pointer-events:none;transform:translateY(2px);transition:opacity .12s ease,transform .12s ease}',
 			'.dss-anchor:hover .dss-tip,.dss-anchor:focus-within .dss-tip{opacity:1;transform:translateY(0)}',
 			'.dss-toast{position:absolute;bottom:calc(100% + 10px);right:0;z-index:31;max-width:280px;padding:6px 10px;border-radius:8px;background:var(--dsw-alias-bg-overlay,#fff);color:var(--dsw-alias-label-primary,#1f2328);border:1px solid var(--dsw-alias-border-l1,rgba(127,127,127,.22));box-shadow:0 8px 24px rgba(0,0,0,.18);font-size:12px;line-height:1.45}',
@@ -172,7 +177,17 @@ window.__ModuleLoader__.load({
 			'.dss-btn-primary{background:var(--dsw-alias-brand-primary,#4d6bfe);color:#fff}',
 			'.dss-btn-primary:hover:not(:disabled){filter:brightness(1.06)}',
 			'.dss-btn:disabled{opacity:.6;cursor:default}',
-			'@keyframes dss-fade{from{opacity:0}to{opacity:1}}'
+			'@keyframes dss-fade{from{opacity:0}to{opacity:1}}',
+			// ── 宿主发送按钮的造型微调 ────────────────────────────────────────
+			// 这三条只改外观，用来把「定时箭头」和宿主那颗圆形发送按钮拼成一颗
+			// 胶囊（飞书同款）。全部按 `[data-composer-card] button[class*="_primary"]`
+			// 这种「结构 + 类名后缀」匹配，任何一条不再生效时功能都还在：
+			//   - 圆角没匹配上 → 接缝处多两个直角，仍是两个蓝按钮挨着；
+			//   - 旋转没匹配上 → 发送箭头朝上，其余照旧；
+			//   - :has() 没匹配上 → 运行中主按钮变「停止」时，箭头仍然显示着。
+			'[data-composer-card] button[class*="_primary"]{border-radius:0 999px 999px 0}',
+			'[data-composer-card] button[class*="_primary"] svg{transform:rotate(90deg)}',
+			'[data-composer-card]:has(button[class*="_primary"] svg rect) .dss-anchor{display:none}'
 		].join('\n');
 		// #endregion
 
@@ -615,12 +630,12 @@ window.__ModuleLoader__.load({
 					h('button', {
 						type: 'button',
 						className: 'dss-trigger',
-						'data-armed': pending.length > 0 ? '1' : '0',
-						'aria-label': t('tip'),
+						'data-dim': draftText.trim() === '' && attachmentCount === 0 ? '1' : '0',
+						'aria-label': pending.length > 0 ? t('badge', { count: pending.length }) : t('tip'),
 						onClick: openDialog
 					},
 						h(ChevronIcon),
-						pending.length > 0 ? h('span', { className: 'dss-badge' }, pending.length) : null
+						pending.length > 0 ? h('span', { className: 'dss-dot' }) : null
 					),
 					h('span', { className: 'dss-tip', role: 'tooltip' },
 						pending.length > 0 ? t('badge', { count: pending.length }) : t('tip')

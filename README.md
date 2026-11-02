@@ -1,12 +1,21 @@
 # dsh-scheduled-send
 
-在 DSH 的输入框里，把一条消息**排到将来的某个时刻**：点发送按钮左边的那个 ▾，选好日期和时间，到点由宿主把它发出去。
+在 DSH 的输入框里，把一条消息**排到将来的某个时刻**。
 
-- 入口：输入框工具栏，紧挨着发送按钮的箭头（悬停显示「定时消息」）
-- 交互照飞书：箭头 → 日期 + 时间 → `定时发送`；顺手给了 `10 分钟后 / 30 分钟后 / 1 小时后 / 明天 9:00` 四个预设
+它不改发送按钮的功能，只把**发送按钮本身**做成飞书那种带箭头的分体按钮：宿主那颗蓝色发送圆钮的左边，接上一个同色的 ▾ 半段，两者拼成一颗胶囊——
+
+```
+┌───────────┬─────┐
+│     ▾     │  ▷  │   ← 一个控件：左半边开「定时消息」，右半边照常发送
+└───────────┴─────┘
+```
+
+- 点 ▾ → 日期 + 时间对话框 → `定时发送`；顺手给了 `10 分钟后 / 30 分钟后 / 1 小时后 / 明天 9:00` 四个预设
+- 发送箭头朝右（飞书同款），整颗胶囊一个蓝色，深色主题自动跟随
 - **到点由宿主投递**：关掉标签页、切到别的会话、宿主重启，都不影响
-- 待发送的条目就列在同一个对话框里，可以逐条撤销；有排队时按钮上带一个计数角标
+- 待发送的条目就列在同一个对话框里，可以逐条撤销；有排队时 ▾ 上带一个白点
 - 投递出来的就是一条**普通的用户消息**，和你自己敲回车发出去的一样
+- 主按钮变成「停止」方块时（运行中且输入框为空），▾ 半段自动收起，不会误贴在停止按钮上
 
 ## 安装
 
@@ -21,16 +30,26 @@ dsh plugin --profile web add /path/to/dsh-scheduled-send
 dsh plugin --profile web add dsh-scheduled-send@latest
 ```
 
-装完刷新页面，输入框右侧就会出现那个箭头。
+装完刷新页面，发送按钮就变成那颗分体胶囊了。
 
 > 包声明了 `dsh.bundle.patch`，`dsh plugin add` 会自动把它写进 `dsh.profile.bundles`，不用手改 `cordis.patch.yml`。
 
+## 它是怎么贴上去的
+
+输入框工具栏里没有「发送按钮之后」的插槽，`conversation.input.right` 渲染在 `.standardControls` 里、模型选择器之前。所以 ▾ 半段的定位是三步 CSS：
+
+1. `order: 999` —— 在自己那个容器里排到最后（模型选择器之后）；
+2. `position: relative; right: -8px` —— 平移出去，正好吃掉 `.trailing` 的 8px 间距，右边缘贴在发送按钮的左边缘上；
+3. 把自己画成胶囊的左半段（左圆右直），再把宿主发送按钮的左边缘改成直角（`[data-composer-card] button[class*="_primary"]{border-radius:0 999px 999px 0}`），两半就合上了；同一个选择器把里面的上箭头 `rotate(90deg)` 变成朝右。
+
+这三条都是**纯外观、可失败**的：任何一条在 DSH 升级后匹配不到，功能都还在，只是胶囊接缝处多两个直角、或者箭头仍然朝上。匹配的锚点是 `[data-composer-card]`（宿主自己的稳定标记）+ `_primary` 类名后缀（CSS Modules 命名），不是哈希全名。
+
 ## 用法
 
-1. 在输入框里写好要发的内容（**定时发送取的是点箭头那一刻的草稿**）
-2. 点发送按钮左边的 ▾
+1. 在输入框里写好要发的内容（**定时发送取的是点 ▾ 那一刻的草稿**）
+2. 点 ▾
 3. 选日期和时间，或者点一个预设
-4. 点 `定时发送` → 输入框清空，按钮上出现计数角标
+4. 点 `定时发送` → 输入框清空，▾ 上出现一个小白点
 
 到点之后，宿主把这条消息作为用户消息投进会话；会话空闲就立刻开始这一轮，正忙就排在下一条。
 
@@ -99,9 +118,10 @@ MIT
 
 ## English
 
-Adds a chevron beside the composer send button. Pick a date and time, hit **Schedule**, and the **host** delivers that message into the conversation at that moment — closing the tab, switching sessions, or restarting the host does not cancel it.
+Turns the composer send button into a Feishu-style split control: a same-blue ▾ half joins the left edge of the shipped send button, so one blue capsule offers `schedule` on the left and `send` on the right. Pick a date and time, hit **Schedule**, and the **host** delivers that message into the conversation at that moment — closing the tab, switching sessions, or restarting the host does not cancel it.
 
-- The trigger lives in `conversation.input.right`; the dialog snapshots the draft when you open it
+- The ▾ half lives in `conversation.input.right` and is pinned to the send button with three CSS-only tweaks (`order`, a relative `-8px` shift, matching `border-radius` plus a `rotate(90deg)` on the shipped arrow); each degrades to "still works, slightly off" if a DSH upgrade changes the markup
+- The dialog snapshots the draft when you open it; the ▾ half hides itself while the primary button is showing the stop square
 - Delivery goes through `ctx.sessionController.prompt({ mode: 'queue' })`, so what lands in the session log is an ordinary user message (`source.kind === 'user'`), not a `[SCHEDULE REMINDER]` frame
 - The queue is a JSON file under `$DSH_HOME/storages/dsh-scheduled-send/`, rebuilt on load from absolute epoch milliseconds; failures retry every 60 s, five times
 - Text only — attachments are refused for now
