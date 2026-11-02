@@ -131,15 +131,16 @@ window.__ModuleLoader__.load({
 
 		// #region styles
 		const CSS = [
-			// 抽出来占满「工具栏里自己那格」的右边，再右移 8px 贴住宿主的发送按钮。
-			'.dss-anchor{position:relative;right:-8px;order:999;display:inline-flex;align-items:center}',
+			// 抽出来占满「工具栏里自己那格」的右边，再右移贴住宿主的发送按钮。
+			// 24px 是量出来的：.trailing 的 12px 间距 + 中间那个 0 宽空槽又贡献 12px。
+			// 万一这个数变小，多出来的部分会钻到发送按钮底下（后画的按钮盖住我），
+			// 所以宁可多移一点，也别留缝；图标靠左放，被盖掉一些也不会缺角。
+			'.dss-anchor{position:relative;right:-24px;order:999;display:inline-flex;align-items:center}',
 			// 发送按钮的左半段：和宿主那颗圆形按钮拼成同一颗蓝胶囊。
-			'.dss-trigger{position:relative;display:inline-flex;align-items:center;justify-content:center;width:26px;height:34px;padding:0;border:0;border-radius:999px 0 0 999px;background:var(--dsw-alias-button-info-fill,var(--dsw-alias-brand-primary,#4d6bfe));color:#fff;cursor:pointer;transform:translateY(-2px);transition:background-color .1s}',
+			'.dss-trigger{position:relative;display:inline-flex;align-items:center;justify-content:center;width:26px;height:34px;padding:0 0 0 6px;border:0;border-radius:999px 0 0 999px;background:var(--dsw-alias-button-info-fill,var(--dsw-alias-brand-primary,#4d6bfe));color:#fff;cursor:pointer;transform:translateY(-2px);transition:background-color .1s}',
 			'.dss-trigger:hover:not([data-dim="1"]){background:var(--dsw-alias-button-info-hover,var(--dsw-alias-brand-primary,#4d6bfe))}',
 			'.dss-trigger:focus-visible{outline:2px solid #fff;outline-offset:-3px}',
 			'.dss-trigger[data-dim="1"]{opacity:.4;cursor:default}',
-			// 两半之间那道竖分隔线（飞书同款）。
-			'.dss-trigger:after{content:"";position:absolute;right:0;top:11px;bottom:11px;width:1px;background:rgba(255,255,255,.45)}',
 			// 有排队时的小白点，代替原来的数字角标（26px 宽塞不下数字）。
 			'.dss-dot{position:absolute;top:5px;right:7px;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(15,18,24,.16)}',
 			'.dss-tip{position:absolute;bottom:calc(100% + 8px);right:0;z-index:30;padding:5px 9px;border-radius:8px;background:rgba(24,28,36,.94);color:#fff;font-size:12px;line-height:1.4;white-space:nowrap;opacity:0;pointer-events:none;transform:translateY(2px);transition:opacity .12s ease,transform .12s ease}',
@@ -185,8 +186,13 @@ window.__ModuleLoader__.load({
 			//   - 圆角没匹配上 → 接缝处多两个直角，仍是两个蓝按钮挨着；
 			//   - 旋转没匹配上 → 发送箭头朝上，其余照旧；
 			//   - :has() 没匹配上 → 运行中主按钮变「停止」时，箭头仍然显示着。
-			'[data-composer-card] button[class*="_primary"]{border-radius:0 999px 999px 0}',
+			'[data-composer-card] button[class*="_primary"]{position:relative;border-radius:0 999px 999px 0}',
 			'[data-composer-card] button[class*="_primary"] svg{transform:rotate(90deg)}',
+			// 分隔线画在发送按钮自己的左缘上：不管中间到底隔了几像素，它永远正好落在
+			// 两半的接缝处。「停止」方块出现时箭头半段会收起，这条线也跟着不画。
+			'[data-composer-card]:not(:has(button[class*="_primary"] svg rect)) button[class*="_primary"]:before{content:"";position:absolute;left:0;top:11px;bottom:11px;width:1px;background:rgba(255,255,255,.4)}',
+			// 悬停时整颗胶囊一起变色，而不是只亮一半。
+			'[data-composer-card]:has(button[class*="_primary"]:hover) .dss-trigger{background:var(--dsw-alias-button-info-hover,var(--dsw-alias-brand-primary,#4d6bfe))}',
 			'[data-composer-card]:has(button[class*="_primary"] svg rect) .dss-anchor{display:none}'
 		].join('\n');
 		// #endregion

@@ -1,6 +1,6 @@
 {
   "name": "dsh-scheduled-send",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "在 DSH 输入框的发送按钮旁加一个箭头：选好日期时间，由宿主到点把这条消息投递进会话——关掉页面、切走会话都照发。",
   "keywords": [

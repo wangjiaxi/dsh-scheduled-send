@@ -39,8 +39,8 @@ dsh plugin --profile web add dsh-scheduled-send@latest
 输入框工具栏里没有「发送按钮之后」的插槽，`conversation.input.right` 渲染在 `.standardControls` 里、模型选择器之前。所以 ▾ 半段的定位是三步 CSS：
 
 1. `order: 999` —— 在自己那个容器里排到最后（模型选择器之后）；
-2. `position: relative; right: -8px` —— 平移出去，正好吃掉 `.trailing` 的 8px 间距，右边缘贴在发送按钮的左边缘上；
-3. 把自己画成胶囊的左半段（左圆右直），再把宿主发送按钮的左边缘改成直角（`[data-composer-card] button[class*="_primary"]{border-radius:0 999px 999px 0}`），两半就合上了；同一个选择器把里面的上箭头 `rotate(90deg)` 变成朝右。
+2. `position: relative; right: -24px` —— 平移出去吃掉中间的空隙。这个数是**从渲染结果量出来的**：`.trailing` 的 12px 间距 + 中间那个 0 宽空槽又贡献 12px。宁可多移，因为多出来的部分会钻到发送按钮底下被盖住，而少移就会留缝；
+3. 把自己画成胶囊的左半段（左圆右直），再把宿主发送按钮的左边缘改成直角（`[data-composer-card] button[class*="_primary"]{border-radius:0 999px 999px 0}`），两半就合上了；同一个选择器把里面的上箭头 `rotate(90deg)` 变成朝右，另一条规则在它的左缘上画那道竖分隔线（位置永远正好在接缝处）。
 
 这三条都是**纯外观、可失败**的：任何一条在 DSH 升级后匹配不到，功能都还在，只是胶囊接缝处多两个直角、或者箭头仍然朝上。匹配的锚点是 `[data-composer-card]`（宿主自己的稳定标记）+ `_primary` 类名后缀（CSS Modules 命名），不是哈希全名。
 
